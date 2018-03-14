@@ -7,10 +7,25 @@ class Portfolio:
     def names(self): return self.port.keys()
     def weights(self): return self.port.values()
     
-    def __init__(self, names = [], weights = [], factors = {}):
+    def __init__(self, positions = [], weights = [], factors = {}):
+        """
+        Portfolio Object Constructor
+        
+        positions : list
+            list of positions held. This could be Security objects or Portfolio objects
+        weights : list
+            list of weights corresponding to the positions
+        
+        Note : anything passed to positions argument needs a 'factors' dict object
+        """
         self.port = defaultdict(float)
         for i in xrange(len(names)):
             self.port[names[i]] += weights[i]
+        self.factors = factors
+        self.df = pd.DataFrame(self.port)
+        for f in factors:
+            self.df[f] = [sec.factors[f] for sec in secs]
+        
     
     def normalize(self, total = 1.0):
         weight_sum = sum(self.weights())
@@ -32,14 +47,10 @@ class Portfolio:
         del self.port[pos]
         self.normalize()
     
-    # these two suck - find a better way for repr and str
     def __str__(self):
         return str(self.port.items())
     def __repr__(self):
         return str(self.port.items())
-    
-    def to_pandas(self):
-        return pd.DataFrame.from_dict(self.port, orient = 'index')
     
     def sum_weights(self):
         return sum(self.weights())
@@ -58,15 +69,11 @@ class Portfolio:
         if replacements == None:
             tempkeys = to_replace.viewkeys() ^ self.port.viewkeys()
             replacements = dict(zip(tempkeys, [1.0 / len(tempkeys) for x in range(len(tempkeys))]))
-        
         for replaced in to_replace.iteritems():
             nominal_percent = self.port[replaced[0]] * replaced[1]
-                
             for security in replacements.iteritems():
                 self.port[security[0]] += security[1] * nominal_percent
-            
             self.port[replaced[0]] -= nominal_percent
-            
             if(self.port[replaced[0]] == 0.0):
                 del self.port[replaced[0]]
     
@@ -91,23 +98,6 @@ class Portfolio:
         # default to just the position weight
         # optionally pass postion characteristic for group level limit
         pass
-        
-    def factors(self):
-        # get the factors of the securities being held
-        # I'm not sure this should be implemented in the base object
-        # I wish I could make it a pure virtual function
-        # Factor exposure should be part of every object in the pipeline
-        # Look at aggregated factor exposure formula
-        return [key.factors for key in self.port.iterkeys()]
-    
-    
-    # maybe try join multiplier like I did in R
-    def limit(self, factor, group, limit, **kwargs):
-        df = self.to_pandas()
-        grp = df.groupby(factor)[group]
-        if grp['weight'].sum() > limit:
-            self.rebalance({name:weight / limit for (name, weight) in grp[['names', 'weights']]}, **kwargs)
-            self.normalize()
 
 
 class EquityPortfolio(Portfolio):
@@ -115,9 +105,3 @@ class EquityPortfolio(Portfolio):
         for n in self.names():
             print n.name
 
-class CombinationPortfolio(Portfolio):
-    # this class is for combining portfolios
-    # would hold a dictionary of portfolio objects and their wieights
-    # I don't know if this is all that necessary
-    # the regular portfolio object can hold portfolios
-    pass

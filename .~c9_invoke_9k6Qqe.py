@@ -1,7 +1,5 @@
-from collections import defaultdict
-
 class Security:
-    def __init__(self, name, factors = defaultdict(float)):
+    def __init__(self, name, factors = ):
         self.name = name
         self.factors = factors
     def __repr__(self):
@@ -11,11 +9,94 @@ class Security:
     def price(self):
         pass
 
-
 class Equity(Security):
     pass
     
-
 class Bond(Security):
     pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
