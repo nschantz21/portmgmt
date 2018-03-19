@@ -7,25 +7,17 @@ class Portfolio:
     def names(self): return self.port.keys()
     def weights(self): return self.port.values()
     
-    def __init__(self, positions = [], weights = [], factors = {}):
+    def __init__(self, port):
         """
         Portfolio Object Constructor
         
-        positions : list
-            list of positions held. This could be Security objects or Portfolio objects
-        weights : list
-            list of weights corresponding to the positions
+        port : dict
+            names and weights of positions
         
         Note : anything passed to positions argument needs a 'factors' dict object
         """
-        self.port = defaultdict(float)
-        for i in xrange(len(names)):
-            self.port[names[i]] += weights[i]
-        self.factors = factors
+        self.port = port
         self.df = pd.DataFrame(self.port)
-        for f in factors:
-            self.df[f] = [sec.factors[f] for sec in secs]
-        
     
     def normalize(self, total = 1.0):
         weight_sum = sum(self.weights())
@@ -76,29 +68,3 @@ class Portfolio:
             self.port[replaced[0]] -= nominal_percent
             if(self.port[replaced[0]] == 0.0):
                 del self.port[replaced[0]]
-    
-    def get_drift(self, old_price, new_price):
-        """
-        Calculate the price drift (percent change) of each asset
-        """
-        return (new_price - old_price) / old_price
-    
-    def apply_drift(self, drift):
-        """
-        drift : dict
-            dictionary of assets and the percent drift
-        """
-        for x in self.port.iterkeys():
-            self.port[x] = self.port[x] * (1.0 + drift[x])
-        self.normalize()
-    
-    def factors(self):
-        """
-        Recursively access the factors of the held assets.
-        This should work for any asset (securities and other portfolios)
-        
-        Classifications need to use binarization - pandas.get_dummies()
-        """
-        for pos in self.names():
-            for f in pos.factors.iteritems():
-                self.factors[f[0]] += self.port[pos] * f[1]
