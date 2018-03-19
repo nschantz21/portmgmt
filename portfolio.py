@@ -17,7 +17,9 @@ class Portfolio:
         Note : anything passed to positions argument needs a 'factors' dict object
         """
         self.port = port
-        self.df = pd.DataFrame(self.port)
+        self.df = pd.DataFrame.from_dict(port, orient='index')
+        self.df.reset_index(inplace = True)
+        self.df.columns = ['names', 'weights']
     
     def normalize(self, total = 1.0):
         weight_sum = sum(self.weights())
@@ -44,9 +46,12 @@ class Portfolio:
     def __repr__(self):
         return str(self.port.items())
     
+    
     def sum_weights(self):
         return sum(self.weights())
     
+    
+    # The problem with these two functions is that they modify in-place. This makes operations less safe.
     def replace(self, to_replace, replacements = None):
         """
         Replace Portfolio Positions
@@ -68,3 +73,34 @@ class Portfolio:
             self.port[replaced[0]] -= nominal_percent
             if(self.port[replaced[0]] == 0.0):
                 del self.port[replaced[0]]
+    
+    
+    def restrict(self, limit, pos=None, rebal=True, repl = None):
+        """
+        Set an upper limit for position in Portfolio. Optionally specify target positions and replacements.
+        
+        limit : float
+            upper limit of given positions
+        pos : list
+            list of positions names to limit. By default will be applied to all positions
+        rebal : bool
+            Normalize the portfolio weights
+        repl : dict
+            optional dict of replacement securities and weights for restricted positions. defaults to all other securities
+        
+        Note : To uniquely reallocate for each restriction based on the repl argument, I would suggest looping over this or the replace function with different replace values.  If you are restricting multiple securities, rebal should be True, otherwise it doesn't really matter.
+        """
+        if pos == None:
+            pos = self.names()
+            # safety check
+            if limit < (1.0 / len(pos)):
+                return "That's too small of a limit"
+        for p in pos:
+            if self.port[p] > limit:
+                excess = self.port[p] - limit
+                self.replace({p: excess / self.port[p]}, repl)
+        if rebal:
+            self.normalize()
+            while any([self.port[i] > limit for i in pos]):
+                self.restrict(limit, pos, rebal)
+        

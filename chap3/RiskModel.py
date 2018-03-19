@@ -90,7 +90,3 @@ def factor_return(weights, returns):
     Used for factor-mimicking portfolio.  Portfolio that capture the specific effect of the exposure.  Factor Portfolios are not investable since they hold all assets in some weight.
     """
     return np.sum([w * r for (w, r) in zip(weights, returns)], axis = 0)
-
-# French's website of factor returns
-# http://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html
-
