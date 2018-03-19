@@ -91,17 +91,14 @@ class Portfolio:
         for x in self.port.iterkeys():
             self.port[x] = self.port[x] * (1.0 + drift[x])
         self.normalize()
+    
+    def factors(self):
+        """
+        Recursively access the factors of the held assets.
+        This should work for any asset (securities and other portfolios)
         
-    def set_constraint(self, constraint_func, factor = None, factor_value = None):
-        # group the port weights by the factor
-        # call the replace function based on the factor and factor value
-        # default to just the position weight
-        # optionally pass postion characteristic for group level limit
-        pass
-
-
-class EquityPortfolio(Portfolio):
-    def print_secnames(self):
-        for n in self.names():
-            print n.name
-
+        Classifications need to use binarization - pandas.get_dummies()
+        """
+        for pos in self.names():
+            for f in pos.factors.iteritems():
+                self.factors[f[0]] += self.port[pos] * f[1]
