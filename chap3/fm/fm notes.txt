@@ -1,7 +1,0 @@
-Pick a general investment universe.
-Get daily prices of the index, all the securities in the index, and some risk free rate.
-
-Calculate the forward looking annual returns for each security and the index.
-Subtract the risk free rate from the forward looking annual returns.
-This will give you the excess returns for securities and the market
-

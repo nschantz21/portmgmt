@@ -17,9 +17,12 @@ class Portfolio:
         Note : anything passed to positions argument needs a 'factors' dict object
         """
         self.port = port
-        self.df = pd.DataFrame.from_dict(port, orient='index')
-        self.df.reset_index(inplace = True)
-        self.df.columns = ['names', 'weights']
+    
+    def to_dataframe(self):
+        df = pd.DataFrame.from_dict(self.port, orient='index')
+        df.reset_index(inplace = True)
+        df.columns = ['names', 'weights']
+        return df
     
     def normalize(self, total = 1.0):
         weight_sum = sum(self.weights())
@@ -46,10 +49,13 @@ class Portfolio:
     def __repr__(self):
         return str(self.port.items())
     
-    
     def sum_weights(self):
         return sum(self.weights())
     
+    def clean(self):
+        for p in self.port:
+            if self.port[p] == 0.0:
+                del self.port[p]
     
     # The problem with these two functions is that they modify in-place. This makes operations less safe.
     def replace(self, to_replace, replacements = None):
@@ -103,4 +109,5 @@ class Portfolio:
             self.normalize()
             while any([self.port[i] > limit for i in pos]):
                 self.restrict(limit, pos, rebal)
-        
+    
+    
