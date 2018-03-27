@@ -18,10 +18,9 @@ class Portfolio:
         """
         self.port = port
     
-    def to_dataframe(self):
+    def to_frame(self):
         df = pd.DataFrame.from_dict(self.port, orient='index')
-        df.reset_index(inplace = True)
-        df.columns = ['names', 'weights']
+        df.columns = ['weights']
         return df
     
     def normalize(self, total = 1.0):
@@ -41,6 +40,9 @@ class Portfolio:
         return temp_port
     
     def remove(self, pos):
+        """
+        removes a portfolio position, then normalizes portfolio weights
+        """
         del self.port[pos]
         self.normalize()
     
@@ -57,7 +59,7 @@ class Portfolio:
             if self.port[p] == 0.0:
                 del self.port[p]
     
-    # The problem with these two functions is that they modify in-place. This makes operations less safe.
+    # The problem with these two functions is that they modify in-place. This makes operations less safe.  They also don't normalize on their own, so it's possible to under or overweight
     def replace(self, to_replace, replacements = None):
         """
         Replace Portfolio Positions
@@ -67,7 +69,7 @@ class Portfolio:
         replacements : dict
             dictionary of replacement securities
         
-        Note : This will work with many to one, one to many, and many to many replacements. It's annoying that there is no default value for replacement percentages.
+        Note : This will work with many to one, one to many, and many to many replacements. When providing replacements 
         """
         if replacements == None:
             tempkeys = to_replace.viewkeys() ^ self.port.viewkeys()
@@ -94,7 +96,7 @@ class Portfolio:
         repl : dict
             optional dict of replacement securities and weights for restricted positions. defaults to all other securities
         
-        Note : To uniquely reallocate for each restriction based on the repl argument, I would suggest looping over this or the replace function with different replace values.  If you are restricting multiple securities, rebal should be True, otherwise it doesn't really matter.
+        Note : To uniquely reallocate for each restriction based on the repl argument, I would suggest looping over this or the replace function with different replace values.  If you are restricting multiple securities, rebal should be True, otherwise it doesn't really matter
         """
         if pos == None:
             pos = self.names()
