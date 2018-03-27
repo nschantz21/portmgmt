@@ -1,8 +1,7 @@
-from portfolio import Portfolio
 import pandas as pd
 
 # rebalance the group
-def pdreplace(series, replace, replacements = None, group = None):
+def pdreplace(series, replace, replacements=None, group=None):
     """
     series : Pandas Series
         series of weights with index of securities
@@ -12,8 +11,8 @@ def pdreplace(series, replace, replacements = None, group = None):
     if group is not None:
         grpsum = series.groupby(group)['weights'].sum()
         new_grps = pdreplace(grpsum, replace, replacements)
-        redxed = my_grp_frame.set_index(grp, append = True).multiply(new_grps / grpsum, level=grp, axis=0)
-        return redxed.reset_index(level=grp)
+        redxed = my_grp_frame.set_index(group, append = True).multiply(new_grps / grpsum, level=group, axis=0)
+        return redxed.reset_index(level=group)
     if replacements is None:
         new_index = series.index ^ replace.index
         replacements = pd.Series((1.0 / len(new_index)), copy=True, index = new_index)
@@ -22,12 +21,6 @@ def pdreplace(series, replace, replacements = None, group = None):
     new_series = new_series.add((replacements * nominal_percent.sum()), fill_value = 0.0)
     return new_series
 
-
-# works for dataframes
-my_frame = Portfolio({'A' : .1, 'B':.4, 'C':.5}).to_frame()
-another_frame = Portfolio({'A':.1, 'B':.5}).to_frame()
-reps = Portfolio({'C':1.0}).to_frame()
-pdreplace(my_frame, another_frame, replacements = reps)
 
 # works with series
 my_frame = pd.Series(index = ['A', 'B', 'C'], data = [.1, .4, .5])
@@ -41,9 +34,57 @@ replace_grps = pd.Series(index = ['E'], data=[.5])
 replacements_grps = pd.Series(index = ['F','G'], data=[.1, .9])
 grp = 'country'
 
-grpsum = my_grp_frame.groupby(grp)['weights'].sum()
-new_grps = pdreplace(grpsum, replace_grps, replacements_grps)
-redxed = my_grp_frame.set_index(grp, append = True).multiply(new_grps / grpsum, level=grp, axis=0)
-redxed.reset_index(level=grp, inplace=True)
-
 pdreplace(my_grp_frame, replace_grps, replacements = replacements_grps, group = grp)
+
+##########
+#Restrict#
+##########
+# function version
+
+
+def pdrestrict(series, limit, pos=None, rebal=True, repl=None, group=None):
+    if group is not None:
+        grpsum = series.groupby(group)['weights'].sum()
+        new_grps = pdrestrict(grpsum, limit, pos=pos, rebal=rebal, repl=repl)
+        redxed = my_grp_frame.set_index(group, append = True).multiply(new_grps / grpsum, level=group, axis=0)
+        return redxed.reset_index(level=group)
+    if pos is None:
+        pos = series.index
+        if limit < (1.0 / len(pos)):
+            return "that's too small of a limit"
+    over = series[pos].loc[series > limit]
+    excess = (over - limit) / over
+    restrict_series = pdreplace(series, excess, repl)
+    if rebal:
+        restrict_series = restrict_series / restrict_series.sum()
+        while (restrict_series[pos] > limit).any():
+            over = restrict_series[pos].loc[restrict_series > limit]
+            excess = (over - limit) / over
+            restrict_series = pdreplace(restrict_series, excess)
+    return restrict_series
+
+
+
+frame = pd.Series(index = ['A', 'B', 'C', 'D', 'H'], data = [.2,.2,.1,.1,.4])
+limit = .1
+pos = ['B', 'C']
+rebal = True
+repl = pd.Series(index = ['A'], data = [1.0])
+
+# regular series
+pdrestrict(frame,.08, pos=pos, repl = repl)
+
+# grouped data
+my_grp_frame = pd.DataFrame({'weights': [.2,.2,.1,.1,.4], 
+                             'country':['E','E','F','F','G']}, 
+                            index = ['A','B','C','D','H'])
+grp_limit = .39
+my_group = ['country']
+grp_pos = ['E']
+replace_grps = pd.Series(index=['F', 'G'], data=[.7, .3])
+
+pdrestrict(my_grp_frame, limit=.35, group='country')
+pdrestrict(my_grp_frame, limit=.35, group='country', pos=grp_pos)
+pdrestrict(my_grp_frame, limit=.35, group='country', pos=grp_pos, repl=replace_grps)
+
+
