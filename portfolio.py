@@ -10,13 +10,11 @@ class Portfolio:
     def __init__(self, port):
         """
         Portfolio Object Constructor
-        
         port : dict
             names and weights of positions
-        
         Note : anything passed to positions argument needs a 'factors' dict object
         """
-        self.port = port
+        self.port = port 
     
     def to_frame(self):
         df = pd.DataFrame.from_dict(self.port, orient='index')
@@ -81,6 +79,49 @@ class Portfolio:
             self.port[replaced[0]] -= nominal_percent
             if(self.port[replaced[0]] == 0.0):
                 del self.port[replaced[0]]
+    
+    def pdreplace(series, replace, replacements=None, group=None):
+    """
+    series : Pandas Series
+        series of weights with index of securities
+    
+    Note : if passing a value to the group argument, the value passed to the series argument must have a column named 'weights' in addition to the grouping column. In all cases the security identifiers should be the index of the series. I would suggest always passing a pandas series to this, although it will work with a DataFrame with a single weights column.
+    """
+    if group is not None:
+        grpsum = series.groupby(group)['weights'].sum()
+        new_grps = pdreplace(grpsum, replace, replacements)
+        redxed = my_grp_frame.set_index(group, append = True).multiply(new_grps / grpsum, level=group, axis=0)
+        return redxed.reset_index(level=group)
+    if replacements is None:
+        new_index = series.index ^ replace.index
+        replacements = pd.Series((1.0 / len(new_index)), copy=True, index = new_index)
+    nominal_percent = (series * replace).dropna()
+    new_series = series.subtract(nominal_percent, fill_value = 0.0)
+    new_series = new_series.add((replacements * nominal_percent.sum()), fill_value = 0.0)
+    return new_series
+    
+    def pdrestrict(series, limit, pos=None, rebal=True, repl=None, group=None):
+        if group is not None:
+            grpsum = series.groupby(group)['weights'].sum()
+            new_grps = pdrestrict(grpsum, limit, pos=pos, rebal=rebal, repl=repl)
+            redxed = my_grp_frame.set_index(group, append = True).multiply(new_grps / grpsum, level=group, axis=0)
+            return redxed.reset_index(level=group)
+        if pos is None:
+            pos = series.index
+            if limit < (1.0 / len(pos)):
+                return "that's too small of a limit"
+        over = series[pos].loc[series > limit]
+        excess = (over - limit) / over
+        restrict_series = pdreplace(series, excess, repl)
+        if rebal:
+            restrict_series = restrict_series / restrict_series.sum()
+            while (restrict_series[pos] > limit).any():
+                over = restrict_series[pos].loc[restrict_series > limit]
+                excess = (over - limit) / over
+                restrict_series = pdreplace(restrict_series, excess)
+        return restrict_series
+    
+    
     
     
     def restrict(self, limit, pos=None, rebal=True, repl = None):
