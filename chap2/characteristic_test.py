@@ -110,9 +110,29 @@ port_exposure(hQ, b) == ((port_exposure(hb, q) * port_variance(Q)) / (port_expos
 # kinda cheating, but I'm tired
 hb2 = hb / port_exposure(hb, c)
 port_exposure(hb2, c) == 1.0
-port_exposure(hQ, b) == (port_exposure(char_portfolio(c), b) * port_exposure(hb2)) / port_exposure(hc, q)
+port_exposure(hQ, b) == (port_exposure(char_portfolio(c), b) * port_exposure(hb2, c)) / port_exposure(hc, q)
 
 # to build portfolio based on our alphas, but with a beta of 1, full investment, and conforming to our preferences for risk and return, we will build a linear combination of portfolios A, B, and C
 combined = ha * .3 + hb * .3 + hc * .4
 # it's not necessarily fully invested
 combined.sum()
+
+
+
+"""
+The Efficient Frontier
+Every efficient portfolio is a combination of the characteristic portfolio and the expected excess returns portfolio
+
+You could use the below to make a continuous set of efficient-frontier portfolios
+"""
+ap = .2 * c + .8 * Q
+hp = char_portfolio(ap)
+# coefficient of variance... idk
+k = (port_variance(Q) - port_variance(c)) / (port_exposure(char_portfolio(Q), q) - port_exposure(char_portfolio(c), q))
+# variance of efficient frontier portfolios
+varp = port_variance(c) + k * (port_exposure(char_portfolio(ap), q) - port_exposure(char_portfolio(c), q))
+
+"""
+CAPM
+Portfolio Q, the portfolio with the highest ratio of expected excess return to risk (highest Sharpe Ratio) among all fully invested portfolios, is the Market Portfolio, Portfolio M.
+"""

@@ -1,44 +1,41 @@
-import numpy as np
-import Portfolio
+"""
+The Characteristic Portfolio Module is used in conjunction with a covariance matrix of excess asset returns and factor values for each asset.
+"""
 
-def characteristic_portfolio(assets, f):
+import numpy as np
+
+def characteristic_portfolio(xs_cov, f):
     """
-    A unique portfolio that has minimum risk and unit exposure to the asset characteristic a.  Not necessarily fully invested. Can include long and short postisions and have significant leverage.
+    A unique portfolio that has minimum risk and unit exposure to the asset characteristic f.  Not necessarily fully invested. Can include long and short postisions and have significant leverage.
     
-    assets : array
-        array of assets
-    f : string
-        asset characteristic (factor)
+    cov : array
+        covariance of asset excess returns
+    f : array or scalar
+        factor exposures. Use scalar when all of the exposures are equal, like 1.0 for a categorical exposure.
     
     Note : to build an investable portfolio, combine the benchmark with a small amount of the characteristic portfolio. This will effectively deleverage it.
     """
-    # excess returns of assets
-    xs_rtrns = excess_returns(assets)
-    # covariance of excess returns
-    V = np.cov(excess_returns)
-    # factor exposures
-    a = np.array([i.factors[f] for i in assets])
-    weights = (V**-1 * a) / a.T * V**-1 * a
-    return Portfolio(dict(zip(assets, weights)))
+    inv_cov = np.linalg.inv(xs_cov)
+    numerator = np.dot(inv_cov, f)
+    denominator = np.dot(f.T, numerator)
+    return numerator / denominator
 
-
-# maybe this should be a single attribute
-def factor_exposure(port, f):
+def factor_exposure(holdings, f):
     """
     Exposure of portfolio to given asset characteristic (factor).
     
-    port : dict
-        Portfolio of assets. Keys must have a dict-type attribute "factors"
-    f : string
-        Asset Characteristic
+    holdings : array
+        vector of portfolio weights
+    factor : array
+        asset exposure for each member of holdings
+        
+    returns : float
+        cumulative sum of holding weights and asset factor exposures
     """
-    total = 0.0
-    for (i, j) in port.iteritems():
-        total += i.factors[f] * j
-    return total
+    return np.dot(holdings, f)
 
 
-def variance(assets, f):
+def portfolio_variance(xs_cov, f):
     """
     Variance of characteristic portfolio
     
@@ -47,60 +44,28 @@ def variance(assets, f):
     f : string
         asset characteristic (factor)
     """
-    excess_returns = returns(assets) - returns(risk_free)
-    # covariance of excess returns
-    V = np.cov(excess_returns)
-    # factor exposures
-    a = np.array([i[f] for i in assets])
-    return 1 / a.T * V**-1 * a
+    # inversion of the covariance matrix of excess returns
+    inv_cov = np.linalg.inv(xs_cov)
+    numerator = np.dot(inv_cov, f)
+    denominator = np.dot(f.T, numerator)
+    return 1.0 / denominator
 
 
-def Beta(assets, f):
+def beta(xs_cov, f):
     """
     The beta of all assets with respect to the characteristic portfolio is equal to their characteristic value - the vector of factor exposures
     """
-    return np.array([a.factors[f] for a in assets])
+    return np.dot(xs_cov, characteristic_portfolio(xs_cov, f)) / port_variance(xs_cov, f)
 
 
-def characteristic_covariance(assets, f1, f2):
+def characteristic_covariance(xs_cov, f1, f2):
     """
     The exposure of one characteristic portfolio to another characteristic
-    
-    assets : 
-    f1 : 
-    f2 : 
-    
     """
-    return factor_exposure(characteristic_portfolio(assets, f1), f2) * variance(assets, f2)
+    return factor_exposure(characteristic_portfolio(xs_cov, f1), f2) * portfolio_variance(xs_cov, f2)
 
 
-def char_mul_(char, k):
-    """
-    multitplication operation. If we multiply the attribute by k we will need to divide the characteristic portfolio by k to preserve unit exposure.
-    
-    char : characteristic portfolio
-    k : numeric
-        positive scalar
-    """
-    return char  * 1 / k
-
-# unfinished
-def char_add_(lhs, rhs, lw, rw):
-    """
-    lefthand side
-    righthand side
-    left weight
-    right weight
-    
-    Creating characteristic portfolio from a combination of other factor portfolios.
-    
-    combo : dict
-        factor and weight key-value pairs
-    returns : array
-        weights of characteristic portfolio
-    
-    Note : If characteristic a is a weighted combination of characteristics d and f, then the characteristic portfolio ofa is a weighted combination of the characteristic portfolios of d and f.
-    """
-    var_a = (weight_d * factor_exposure(a to d) / variance(d)) + (weight_f * factor_exposure(a to f) / variance(f))
-    
-    (weight_d * var_a**-1 / variance(d)) * characteristic_portfolio(d) + (weight_f * var_a**-1 / variance(f)) * characteristic_portfolio(f)
+def combination_characteristic(xs_cov, f1, f2 , k1, k2):
+    f = f1 * k1 + f2 * k2
+    inv_variance = k1 * factor_exposure(characteristic_portfolio(xs_cov, f1), f) / portfolio_variance(xs_cov, f1) + k2 * factor_exposure(characteristic_portfolio(xs_cov, f2), f) / portfolio_variance(xs_cov, f2)
+    return (((k1 * inv_variance**-1) / portfolio_variance(xs_cov, f1)) * characteristic_portfolio(xs_cov, f1) + ((k2 * inv_variance**-1) / portfolio_variance(xs_cov, f2)) * characteristic_portfolio(xs_cov, f2))
