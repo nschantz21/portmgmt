@@ -1,11 +1,9 @@
 import numpy as np
-a = np.array([-1.264911064, -0.632455532, 0.0, 0.632455532, 1.264911064])
-#np.average(a, weights = ha)
 
+# Global variables
 returns = np.random.rand(5, 200)
 risk_free = .04
 excess_returns = returns - risk_free
-
 excess_cov = np.cov(excess_returns)
 inverted_cov = np.linalg.inv(excess_cov)
 
@@ -17,10 +15,7 @@ def char_portfolio(char):
     denominator = np.dot(char.T, numerator)
     return numerator / denominator
 
-ha = char_portfolio(a)
 
-d = np.array([0.296567751, 1.160700624, -0.595454937, -1.389784669, 0.527971232])
-hd = char_portfolio(d)
 
 def port_variance(char):
     numerator = np.dot(inverted_cov, char)
@@ -43,7 +38,13 @@ def combination_characteristic(char1, char2 , weight1, weight2):
     f = char1 * ka + char2 * kd
     inv_variance = ka * port_exposure(char_portfolio(char1), f) / port_variance(char1) + kd * port_exposure(char_portfolio(char2), f) / port_variance(char2)
     return (((ka * inv_variance**-1) / port_variance(char1)) * char_portfolio(char1) + ((kd * inv_variance**-1) / port_variance(char2)) * char_portfolio(char2))
-    
+
+a = np.array([-1.264911064, -0.632455532, 0.0, 0.632455532, 1.264911064])
+ha = char_portfolio(a)
+
+d = np.array([0.296567751, 1.160700624, -0.595454937, -1.389784669, 0.527971232])
+hd = char_portfolio(d)
+
 hf = combination_characteristic(a, d, .2, .8)
 
 
@@ -110,7 +111,7 @@ port_exposure(hQ, b) == ((port_exposure(hb, q) * port_variance(Q)) / (port_expos
 # kinda cheating, but I'm tired
 hb2 = hb / port_exposure(hb, c)
 port_exposure(hb2, c) == 1.0
-port_exposure(hQ, b) == (port_exposure(char_portfolio(c), b) * port_exposure(hb2, c)) / port_exposure(hc, q)
+port_exposure(hQ, b) == (port_exposure(char_portfolio(c), b) * port_exposure(hb2, q)) / port_exposure(hc, q)
 
 # to build portfolio based on our alphas, but with a beta of 1, full investment, and conforming to our preferences for risk and return, we will build a linear combination of portfolios A, B, and C
 combined = ha * .3 + hb * .3 + hc * .4
