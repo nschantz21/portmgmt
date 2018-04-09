@@ -8,7 +8,6 @@ class RebalanceTools:
     """
     Set of Portfolio Management tools. All functions take pandas series. Any attributes should be in the form of a Multi-index.
     """
-    @staticmethod
     def normalize(port, total = 1.0):
         return port / port.sum() * total
     
