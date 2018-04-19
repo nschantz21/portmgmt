@@ -23,7 +23,7 @@ def replace(port, to_replace, replacements=None, lvl=None):
         return result
     if replacements is None:
         new_index = port.index ^ to_replace.index
-        replacements = Series((1.0 / len(new_index)), copy=True, index = new_index)
+        replacements = port.loc[new_index] / port.loc[new_index].sum()
     nominal_percent = (port * to_replace).dropna()
     new_series = port.subtract(nominal_percent, fill_value = 0.0)
     new_series = new_series.add((replacements * nominal_percent.sum()), fill_value = 0.0)
