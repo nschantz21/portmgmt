@@ -94,4 +94,40 @@ Beta_p = Beta_factor_exposure_p + Beta_specific_exposure_p
 # Now we can get the residual risk
 residual_risk_p = total_risk_p - Beta_p * Beta_variance
 # Make the Residual Covariance Matrix
+# Residual risk - Risk of return orthagonal to the systematic return
+VR = V - np.dot(np.dot(Beta, Beta_variance), Beta.T)
+
+
+"""
+Attribution of Risk
+"""
+# Marginal contribution to Total Risk
+# Approximate change in the portfolio risk given a 1 percent increase in the holdings of asset n, financed by decreasing the cash account by 1 percent
+MCTR = np.dot(V, hp) / np.std(hp_returns)
+
+# Marginal Contribution to Residual Risk
+# hpr is the residual holdings vector
+hpr = hp - np.dot(Beta_p, hb)
+MCRR = np.dot(V, hpr) / residual_risk_p
+
+# Marginal Contribution to Active Risk
+MCAR = np.dot(V, hpa) / active_risk_pa
+# decomposition of Marginal Contribution to Active Risk - Market and Residual Components
+k1 = (Beta_pa * benchmark_portfolio_risk) / active_risk_pa
+k2 = active_specific_risk_pa / residual_risk_p
+MCAR_Market_component = Beta * k1
+MCAR_Residual_component = MCRR * k2
+
+
+"""
+Factor Marginal Contribution
+Measuring risk sensativities with respect to factor exposures instead of asset holdings.
+You pretty much just add factor portfolios.
+"""
+# do this tomorrow
+Factor_Portfolios = X.T
+Delta_active_risk = 
+
+
+
 
