@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from portfolio_tools import normalize
 
-def calc_drift(p1, p2, verbose=False):
+def calc_drift(p1, p2):
     """
     p1 : array-like
         Old prices
@@ -12,12 +12,6 @@ def calc_drift(p1, p2, verbose=False):
         Percent change of prices
     """
     d = (p2 - p1) / p1
-    
-    if verbose:
-        # Quality check
-        print 'positives ', (p2 > p1) & (d > 0.0)
-        print 'negatives ', (p2 < p2) & (d < 0.0)
-        print 'equals ', (p2 == p1) & (d == 0.0)
     return d
 
 def apply_drift(weights, drift, normed=True):
@@ -35,4 +29,4 @@ def apply_drift(weights, drift, normed=True):
     return new_weight
 
 
-
+# Make a script for applying the drift then the restrictions
