@@ -64,6 +64,9 @@ def active_risk(portfolio_returns, benchmark_returns):
 
 
 def beta(x, y):
+    """
+    Beta of asset x returns to asset y returns
+    """
     return np.cov(x, y) / np.var(y)
 
 
@@ -90,7 +93,7 @@ def total_risk(returns, weights):
     pass
 
 
-def log_return(i, f, t = 1):
+def log_return(i, f, t = 1.0):
     """
     Continuously Compounded Return
     
@@ -102,9 +105,10 @@ def log_return(i, f, t = 1):
         The initial value
     t : integer
         length of time period. i.e. compounding frequency over the holding period
-        
+    
     Note: This will work for annulization of returns as well. For annualized logarithmic rate of return based on daily price, supply t as the reciprocal of the compounding frequency.
     
     log_return(f = 150.0, i = 120.0, t = 250)  # 250 trading days in a year
     """
     return np.log(f / i) / t
+    
