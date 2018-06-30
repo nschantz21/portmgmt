@@ -11,7 +11,7 @@ def cgr(beg, end, freq = 1, hold_period = 1):
 def ror(prices):
     """
     Rate of Return
-    pretty much a percent change
+    pretty much an average percent change of prices
     """
     return np.diff(prices) / prices[:len(prices) - 1]
 
